@@ -1,0 +1,2 @@
+书籍的修复速度由建筑的Shop Process和GlobalConfig.Instance.FixBookTotalProgress决定
+建筑的Shop Procee估计很难针对藏经阁这样的特定建筑做出修改, 那么就改后者。
