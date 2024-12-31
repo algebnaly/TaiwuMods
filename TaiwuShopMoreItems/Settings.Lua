@@ -1,4 +1,4 @@
 return {
-	rate_factor = 1,
+	rate_factor = 5,
 	stack_factor = 5,
 }

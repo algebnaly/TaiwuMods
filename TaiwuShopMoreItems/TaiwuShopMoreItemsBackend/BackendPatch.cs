@@ -14,8 +14,10 @@ using Config.ConfigCells;
 using System.Diagnostics;
 using GameData.Domains.Item;
 using GameData.Domains;
+using HarmonyLib.Tools;
+using System;
 
-namespace TaiwuIncCraftToolDurabilityBackend
+namespace TaiwuShopMoreItemBackend
 {
     [PluginConfig("TaiwuShopMoreItems", "algebnaly", "0.1.0")]
     public class BackendPatch : TaiwuRemakePlugin
@@ -41,7 +43,7 @@ namespace TaiwuIncCraftToolDurabilityBackend
         }
     }
 
-    [HarmonyPatch(typeof(MerchantDomain), "GetMaxLevelCaravanMerchantData")]
+    [HarmonyPatch(typeof(MerchantData), "GenerateGoodsLevelList")]
     public class PatchMerchantInstance
     {
         public static bool is_modified = false;
@@ -68,134 +70,51 @@ namespace TaiwuIncCraftToolDurabilityBackend
                 }
                 short rate_factor = (short)BackendPatch.rate_factor;
                 sbyte stack_factor = (sbyte)BackendPatch.stack_factor;
-                foreach (MerchantItem merchantItem in ((IEnumerable<MerchantItem>)Merchant.Instance))
+                foreach (MerchantItem merchantItem in Merchant.Instance)
                 {
                     for (int i = 0; i < merchantItem.GoodsRate.Length; i++)
                     {
-                        merchantItem.GoodsRate[i] *= rate_factor;
-                    }
-                    for (int j = 0; j < merchantItem.Goods0.Count; j++)
-                    {
-
-                        sbyte grp_len = merchantItem.Goods0[j].GroupLength;
-                        //我们需要检查物品是否可堆叠, 仅增加可堆叠物品的数量
-                        if (ItemTemplateHelper.IsStackable(
-                            merchantItem.Goods0[j].ItemType, merchantItem.Goods0[j].StartId
-                            ))
-                        {
-                            if (grp_len >= 0 && grp_len <= 12)//sbyte 的最大值为127
-                            {
-                                grp_len *= stack_factor;
-                            }
-                        }
-
-                        var type_name = GameData.Domains.Item.ItemType.TypeId2TypeName[merchantItem.Goods0[j].ItemType];
-                        var new_preset_template_grp = new PresetItemTemplateIdGroup(type_name, merchantItem.Goods0[j].StartId, grp_len);
-                        merchantItem.Goods0[j] = new_preset_template_grp;
-                    }
-                    for (int j = 0; j < merchantItem.Goods1.Count; j++)
-                    {
-                        sbyte grp_len = merchantItem.Goods1[j].GroupLength;
-                        //我们需要检查物品是否可堆叠, 仅增加可堆叠物品的数量
-                        if (ItemTemplateHelper.IsStackable(
-                            merchantItem.Goods1[j].ItemType, merchantItem.Goods1[j].StartId
-                            ))
-                        {
-                            if (grp_len >= 0 && grp_len <= 12)//sbyte 的最大值为127
-                            {
-                                grp_len *= stack_factor;
-                            }
-                        }
-                        var type_name = GameData.Domains.Item.ItemType.TypeId2TypeName[merchantItem.Goods1[j].ItemType];
-                        var new_preset_template_grp = new PresetItemTemplateIdGroup(type_name, merchantItem.Goods1[j].StartId, grp_len);
-                        merchantItem.Goods1[j] = new_preset_template_grp;
+                        var target_rate = merchantItem.GoodsRate[i] * rate_factor;
+                        merchantItem.GoodsRate[i] = (short)Math.Min(target_rate, short.MaxValue);
                     }
 
-                    for (int j = 0; j < merchantItem.Goods2.Count; j++)
+                    var goods_list = new List<List<PresetItemTemplateIdGroup>> {
+                        merchantItem.Goods0,
+                        merchantItem.Goods1,
+                        merchantItem.Goods2,
+                        merchantItem.Goods3,
+                        merchantItem.Goods4,
+                        merchantItem.Goods5,
+                        merchantItem.Goods6,
+                        merchantItem.Goods7,
+                        merchantItem.Goods8,
+                        merchantItem.Goods9,
+                        merchantItem.Goods10,
+                        merchantItem.Goods11,
+                        merchantItem.Goods12,
+                        merchantItem.Goods13,
+                        };
+                    foreach (var goods in goods_list)
                     {
-                        sbyte grp_len = merchantItem.Goods2[j].GroupLength;
-                        //我们需要检查物品是否可堆叠, 仅增加可堆叠物品的数量
-                        if (ItemTemplateHelper.IsStackable(
-                            merchantItem.Goods2[j].ItemType, merchantItem.Goods2[j].StartId
-                            ))
+                        for (int j = 0; j < goods.Count; j++)
                         {
-                            if (grp_len >= 0 && grp_len <= 12)//sbyte 的最大值为127
+                            sbyte grp_len = goods[j].GroupLength;
+                            //我们需要检查物品是否可堆叠, 仅增加可堆叠物品的数量
+                            if (ItemTemplateHelper.IsStackable(
+                                goods[j].ItemType, goods[j].StartId
+                                ))
                             {
-                                grp_len *= stack_factor;
+                                var target_num = (int)grp_len * stack_factor;
+                                if (grp_len >= 0)//sbyte 的最大值为127
+                                {
+                                    grp_len = (sbyte)Math.Min(target_num, sbyte.MaxValue);
+                                }
                             }
-                        }
-                        var type_name = GameData.Domains.Item.ItemType.TypeId2TypeName[merchantItem.Goods2[j].ItemType];
-                        var new_preset_template_grp = new PresetItemTemplateIdGroup(type_name, merchantItem.Goods2[j].StartId, grp_len);
-                        merchantItem.Goods2[j] = new_preset_template_grp;
-                    }
 
-                    for (int j = 0; j < merchantItem.Goods3.Count; j++)
-                    {
-                        sbyte grp_len = merchantItem.Goods3[j].GroupLength;
-                        //我们需要检查物品是否可堆叠, 仅增加可堆叠物品的数量
-                        if (ItemTemplateHelper.IsStackable(
-                            merchantItem.Goods3[j].ItemType, merchantItem.Goods3[j].StartId
-                            ))
-                        {
-                            if (grp_len >= 0 && grp_len <= 12)//sbyte 的最大值为127
-                            {
-                                grp_len *= stack_factor;
-                            }
+                            var type_name = ItemType.TypeId2TypeName[goods[j].ItemType];
+                            var new_preset_template_grp = new PresetItemTemplateIdGroup(type_name, goods[j].StartId, grp_len);
+                            goods[j] = new_preset_template_grp;
                         }
-                        var type_name = GameData.Domains.Item.ItemType.TypeId2TypeName[merchantItem.Goods3[j].ItemType];
-                        var new_preset_template_grp = new PresetItemTemplateIdGroup(type_name, merchantItem.Goods3[j].StartId, grp_len);
-                        merchantItem.Goods3[j] = new_preset_template_grp;
-                    }
-                    for (int j = 0; j < merchantItem.Goods4.Count; j++)
-                    {
-                        sbyte grp_len = merchantItem.Goods4[j].GroupLength;
-                        //我们需要检查物品是否可堆叠, 仅增加可堆叠物品的数量
-                        if (ItemTemplateHelper.IsStackable(
-                            merchantItem.Goods4[j].ItemType, merchantItem.Goods4[j].StartId
-                            ))
-                        {
-                            if (grp_len >= 0 && grp_len <= 12)//sbyte 的最大值为127
-                            {
-                                grp_len *= stack_factor;
-                            }
-                        }
-                        var type_name = GameData.Domains.Item.ItemType.TypeId2TypeName[merchantItem.Goods4[j].ItemType];
-                        var new_preset_template_grp = new PresetItemTemplateIdGroup(type_name, merchantItem.Goods4[j].StartId, grp_len);
-                        merchantItem.Goods4[j] = new_preset_template_grp;
-                    }
-                    for (int j = 0; j < merchantItem.Goods5.Count; j++)
-                    {
-                        sbyte grp_len = merchantItem.Goods5[j].GroupLength;
-                        //我们需要检查物品是否可堆叠, 仅增加可堆叠物品的数量
-                        if (ItemTemplateHelper.IsStackable(
-                            merchantItem.Goods5[j].ItemType, merchantItem.Goods5[j].StartId
-                            ))
-                        {
-                            if (grp_len >= 0 && grp_len <= 12)//sbyte 的最大值为127
-                            {
-                                grp_len *= stack_factor;
-                            }
-                        }
-                        var type_name = GameData.Domains.Item.ItemType.TypeId2TypeName[merchantItem.Goods5[j].ItemType];
-                        var new_preset_template_grp = new PresetItemTemplateIdGroup(type_name, merchantItem.Goods5[j].StartId, grp_len);
-                        merchantItem.Goods5[j] = new_preset_template_grp;
-                    }
-                    for (int j = 0; j < merchantItem.Goods6.Count; j++)
-                    {
-                        sbyte grp_len = merchantItem.Goods6[j].GroupLength;
-                        //我们需要检查物品是否可堆叠, 仅增加可堆叠物品的数量
-                        if (ItemTemplateHelper.IsStackable(
-                            merchantItem.Goods6[j].ItemType, merchantItem.Goods6[j].StartId
-                            ))
-                        {
-                            if (grp_len >= 0 && grp_len <= 12)//sbyte 的最大值为127
-                            {
-                                grp_len *= stack_factor;
-                            }
-                        }
-                        var type_name = GameData.Domains.Item.ItemType.TypeId2TypeName[merchantItem.Goods6[j].ItemType];
-                        var new_preset_template_grp = new PresetItemTemplateIdGroup(type_name, merchantItem.Goods6[j].StartId, grp_len);
-                        merchantItem.Goods6[j] = new_preset_template_grp;
                     }
                 }
                 is_modified = true;
