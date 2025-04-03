@@ -79,20 +79,20 @@ namespace TaiwuShopMoreItemBackend
                     }
 
                     var goods_list = new List<List<PresetItemTemplateIdGroup>> {
-                        merchantItem.Goods0,
-                        merchantItem.Goods1,
-                        merchantItem.Goods2,
-                        merchantItem.Goods3,
-                        merchantItem.Goods4,
-                        merchantItem.Goods5,
-                        merchantItem.Goods6,
-                        merchantItem.Goods7,
-                        merchantItem.Goods8,
-                        merchantItem.Goods9,
-                        merchantItem.Goods10,
-                        merchantItem.Goods11,
-                        merchantItem.Goods12,
-                        merchantItem.Goods13,
+                        new List<PresetItemTemplateIdGroup>(merchantItem.Goods0),
+                        new List<PresetItemTemplateIdGroup>(merchantItem.Goods1),
+                        new List<PresetItemTemplateIdGroup>(merchantItem.Goods2),
+                        new List<PresetItemTemplateIdGroup>(merchantItem.Goods3),
+                        new List<PresetItemTemplateIdGroup>(merchantItem.Goods4),
+                        new List<PresetItemTemplateIdGroup>(merchantItem.Goods5),
+                        new List<PresetItemTemplateIdGroup>(merchantItem.Goods6),
+                        new List<PresetItemTemplateIdGroup>(merchantItem.Goods7),
+                        new List<PresetItemTemplateIdGroup>(merchantItem.Goods8),
+                        new List<PresetItemTemplateIdGroup>(merchantItem.Goods9),
+                        new List<PresetItemTemplateIdGroup>(merchantItem.Goods10),
+                        new List<PresetItemTemplateIdGroup>(merchantItem.Goods11),
+                        new List<PresetItemTemplateIdGroup>(merchantItem.Goods12),
+                        new List<PresetItemTemplateIdGroup>(merchantItem.Goods13),
                         };
                     foreach (var goods in goods_list)
                     {
@@ -115,6 +115,14 @@ namespace TaiwuShopMoreItemBackend
                             var new_preset_template_grp = new PresetItemTemplateIdGroup(type_name, goods[j].StartId, grp_len);
                             goods[j] = new_preset_template_grp;
                         }
+                    }
+                    for (int i = 0; i < goods_list.Count;i++)
+                    {
+                        var field_info = typeof(MerchantItem).GetField("Goods"+i, BindingFlags.Public | BindingFlags.Instance);
+                        if(field_info == null){
+                            continue;
+                        }
+                        field_info.SetValue(merchantItem, goods_list[i]);
                     }
                 }
                 is_modified = true;

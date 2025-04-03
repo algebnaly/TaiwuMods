@@ -11,7 +11,7 @@ return {
 		[1] = "TaiwuShopMoreItemsBackend.dll",
 	},
 	Description = "提升商店出售物品数量,方便买材料精挑细选。\n可以在设置中调整物品刷新率与物品堆叠数量。",
-	Version = "1.0.0.1",
+	Version = "1.0.0.2",
 	Visibility = 0,
 	DefaultSettings = {
 		[1] = {
@@ -32,14 +32,14 @@ return {
 			MinValue = 1,
 			MaxValue = 10,
 			StepSize = 1,
-			DefaultValue = 5,
+			DefaultValue = 10,
 		},
 	},
 	ChangeConfig = false,
 	HasArchive = false,
 	NeedRestartWhenSettingChanged = true,
 	FileId = 3287449819,
-	GameVersion = "0.0.74.35-test",
+	GameVersion = "0.0.76.25-test",
 	UpdateLogList = {
 		[1] = {
 			Timestamp = 1720769257,
@@ -57,6 +57,12 @@ return {
 			Timestamp = 1735648163,
 			LogList = {
 				[1] = "更新铜生试剑版本， 如果发现爆红字请在评论区留言。",
+			},
+		},
+		[5] = {
+			Timestamp = 1743434692,
+			LogList = {
+				[1] = "稍微改了下实现, 似乎没有出现炸档的情况了",
 			},
 		},
 	},
