@@ -2,7 +2,7 @@
 
   <PropertyGroup>
     <TargetFramework>net6.0</TargetFramework>
-    <Platforms>AnyCPU;x64</Platforms>
+    <Platforms>x64</Platforms>
 	  <OutputPath>..\Plugins</OutputPath>
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
 	<AppendTargetFrameworkToOutputPath>false</AppendTargetFrameworkToOutputPath>
@@ -15,6 +15,10 @@
     </Reference>
     <Reference Include="GameData">
       <HintPath>..\..\..\Backend\GameData.dll</HintPath>
+      <Private>False</Private>
+    </Reference>
+    <Reference Include="GameData.Utilities">
+      <HintPath>..\..\..\Backend\GameData.Utilities.dll</HintPath>
       <Private>False</Private>
     </Reference>
     <Reference Include="TaiwuModdingLib">

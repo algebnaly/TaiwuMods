@@ -6,16 +6,20 @@ using Config;
 using System.Collections.Generic;
 using Config.ConfigCells;
 using GameData.Domains.Character;
+using GameData.Domains.Taiwu;
 using GameData.Domains;
 using GameData.Common;
 using System;
 using System.Reflection.Emit;
 using System.Linq;
 using Redzen.Random;
+using System.Linq.Expressions;
+using System.Runtime.CompilerServices;
+using GameData.ArchiveData;
 
 namespace TaiwuShopMoreItemBackend
 {
-    [PluginConfig("EfficientSamsara", "algebnaly", "0.1.0")]
+    [PluginConfig("EfficientSamsara", "algebnaly", "0.2.0")]
     public class BackendPatch : TaiwuRemakePlugin
     {
         Harmony harmony;
@@ -89,20 +93,11 @@ namespace TaiwuShopMoreItemBackend
             }
             return true;
         }
-        // public static unsafe void Postfix(CharacterDomain __instance, DataContext context, ref PreexistenceCharIds preexistenceCharIds)
-        // {
-        //     fixed (int* ptr = preexistenceCharIds.CharIds) { 
-        //         AdaptableLog.Info("Postfix of RecordDeletedFromOthersPreexistence count: " + preexistenceCharIds.Count);
-        //         for (int i = 0; i < 9; i++)
-        //         {
-        //             AdaptableLog.Info("charId: " + ptr[i]);
-        //         }
-        //     }
-        // }
     }
 
+
     [HarmonyPatch(typeof(GameData.Domains.Character.Character), "OfflineSetPreexistenceCharId")]
-    public class Patch
+    public class PatchOfflineSetPreexistenceCharId
     {
         public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
         {
@@ -147,6 +142,63 @@ namespace TaiwuShopMoreItemBackend
             };
             new_codes.InsertRange(start_pos, assign_codes);
             return new_codes;
+        }
+    }
+
+    [HarmonyPatch(typeof(GameData.Domains.Taiwu.TaiwuDomain), "SwitchEquipmentPlan")]
+    public class PatchSwitchEquipmentPlan
+    {
+        public static void Prefix(TaiwuDomain __instance, DataContext context)
+        {
+            bool enable_add_preIds =false;
+            DomainManager.Mod.GetSetting(BackendPatch.modIdStr, "enable_add_preIds", ref enable_add_preIds);
+            if(enable_add_preIds){
+                GameData.Domains.Character.Character taiwu = DomainManager.Character.GetElement_Objects(DomainManager.Taiwu.GetTaiwuCharId());
+                FieldInfo pre_char_id_field_info = typeof(GameData.Domains.Character.Character).GetField("_preexistenceCharIds", BindingFlags.Instance | BindingFlags.NonPublic);
+                var param_expr = Expression.Parameter(typeof(GameData.Domains.Character.Character), "c");
+                var field_access_expr = Expression.Field(param_expr, pre_char_id_field_info);
+                var get_pre_char_ids_lambda = Expression.Lambda<Func<GameData.Domains.Character.Character, PreexistenceCharIds>>(field_access_expr, param_expr).Compile();
+                var para_expr_pre_char_ids = Expression.Parameter(typeof(PreexistenceCharIds), "p");
+                PreexistenceCharIds pre_char_ids = get_pre_char_ids_lambda(taiwu);
+
+
+
+                int count = pre_char_ids.Count;
+                while (count < 9)
+                {
+                    var copy_char = DomainManager.Character.CreateTemporaryCopyOfCharacter(context, taiwu);
+                    copy_char.SetOrganizationInfo(OrganizationInfo.None, context);
+
+                    DomainManager.Character.ConvertTemporaryIntelligentCharacter(context, copy_char);
+                    copy_char.SetOrganizationInfo(copy_char.GetOrganizationInfo(), context);
+
+                    pre_char_id_field_info.SetValue(copy_char, pre_char_ids);
+                    SaveCharChange(copy_char, pre_char_ids);
+
+                    // clear relations here
+                    var copy_char_id = copy_char.GetId();
+                    DomainManager.Character.RemoveAllRelations(context, copy_char_id, true);
+
+
+                    DomainManager.Character.MakeCharacterDead(context, copy_char, 1);//Nature Death
+
+                    // //clean up code
+                    var copy_char_grave = DomainManager.Character.GetElement_Graves(copy_char_id);
+                    DomainManager.Character.PossessionRemoveWaitingReincarnationChar(context, copy_char_id);
+                    DomainManager.Character.RemoveGrave(context, copy_char_grave);
+
+                    pre_char_ids.Add(context.Random, copy_char_id);
+                    count++;
+                }
+                pre_char_id_field_info.SetValue(taiwu, pre_char_ids);
+                SaveCharChange(taiwu, pre_char_ids);
+            }
+        }
+        private static unsafe void  SaveCharChange(GameData.Domains.Character.Character instance, PreexistenceCharIds preIds)
+        {
+            // Offset value is from FixedFieldInfos
+            byte* pData  = OperationAdder.DynamicObjectCollection_SetFixedField(4, 0, instance.GetId(), 954U, preIds.GetSerializedSize());
+            preIds.Serialize(pData);
         }
     }
 }
