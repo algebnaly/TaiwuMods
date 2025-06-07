@@ -1,11 +1,11 @@
 return {
-	Title = "战斗历练获取修改",
-	Author = "在下炮灰",
+	Title = "[测试]战斗历练获取修改",
+	Author = "algebnaly",
 	Cover = "Cover.png",
 	WorkshopCover = "Cover.png",
 	Source = 0,
-	GameVersion = "0.0.69.65-test",
-	Version = "1.0.0.1",
+	GameVersion = "0.0.77.18-test",
+	Version = "1.0.0.2",
 	FileId = 3172379059,
 	Visibility = 0,
 	UpdateLogList = {
@@ -16,6 +16,12 @@ return {
 			Timestamp = 1709967278,
 			LogList = {
 				[1] = "修复了因为每次战斗后都倍增历练获取基数导致数值溢出的bug",
+			},
+		},
+		[3] = {
+			Timestamp = 1749101142,
+			LogList = {
+				[1] = "修复了战斗后爆红字的错误",
 			},
 		},
 	},

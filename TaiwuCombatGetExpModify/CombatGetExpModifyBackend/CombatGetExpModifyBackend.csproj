@@ -2,8 +2,8 @@
 
   <PropertyGroup>
     <TargetFramework>net6.0</TargetFramework>
-    <BaseOutputPath>D:\soft\steam\steamapps\common\The Scroll Of Taiwu\Mod\BattleGetExpModify\Plugins</BaseOutputPath>
-    <PackageOutputPath></PackageOutputPath>
+    <OutputPath>..\Plugins</OutputPath>
+    <AppendTargetFrameworkToOutputPath>false</AppendTargetFrameworkToOutputPath>
   </PropertyGroup>
 
   <ItemGroup>
@@ -13,6 +13,10 @@
     </Reference>
     <Reference Include="GameData">
       <HintPath>..\..\..\Backend\GameData.dll</HintPath>
+      <Private>False</Private>
+    </Reference>
+    <Reference Include="GameData.Utilities">
+      <HintPath>..\..\..\Backend\GameData.Utilities.dll</HintPath>
       <Private>False</Private>
     </Reference>
     <Reference Include="TaiwuModdingLib">
