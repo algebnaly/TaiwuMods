@@ -60,7 +60,6 @@ namespace CombatGetExpModify
                         var template_id = legacy_value.Item1;
                         var weight = legacy_value.Item2;
                         var legacy_item = Config.Legacy.Instance[template_id];
-                        AdaptableLog.Info(legacy_item.Name+": "+legacy_item.Weight);
                         if (legacy_item.Name == "寿元激发" || legacy_item.Name == "魅力激发")
                         {
                             legacy_list[i] = (template_id, 1);
@@ -77,9 +76,15 @@ namespace CombatGetExpModify
                         {
                             legacy_list[i] = (template_id, 1);
                         }
-                        else
+                        else if (legacy_item.Name.Contains("激发"))
                         {
-                            legacy_list[i] = (template_id, 6);
+                            legacy_list[i] = (template_id, 10);
+                        } else if (legacy_item.Cost < 0)
+                        {
+                            legacy_list[i] = (template_id, 0);
+                        } else if (legacy_item.Name == "传功铸气")
+                        {
+                            legacy_list[i] = (template_id, 1);
                         }
                     }
                 }
