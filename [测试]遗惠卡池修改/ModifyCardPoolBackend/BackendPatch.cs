@@ -13,7 +13,7 @@ using GameData;
 using System.Reflection;
 using System;
 
-namespace CombatGetExpModify
+namespace ModifyCardPool
 {
     [PluginConfig("ModifyCardPool", "algebnaly", "0.1.0")]
     public class BackendPatch : TaiwuRemakePlugin
@@ -44,6 +44,9 @@ namespace CombatGetExpModify
     {
         public static void Prefix(sbyte groupId, ref short __result)
         {
+            if(groupId < 0){
+                return;
+            }
             var taiwu_domain_type = typeof(TaiwuDomain);
             FieldInfo fieldInfo = taiwu_domain_type.GetField("_categorizedNormalLegacyConfigs",
                 BindingFlags.NonPublic | BindingFlags.Static);
